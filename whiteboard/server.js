@@ -86,5 +86,89 @@ io.sockets.on("connection", function (socket) {
     var currentRoom = rooms[roomName] || createRoom(roomName);
     currentRoom.addUser(userName);
     socket.join(roomName);
+
+    currentRoom.chatHistory.length != 0 &&
+      socket.emit("update_chat", currentRoom.chatHistory);
+    currentRoom.images.length != 0 &&
+      socket.emit("update_image", currentRoom.images);
+
+    if (currentRoom.wbHistory.get().length != 0) {
+      if (currentRoom.wbHistory._queue.length) {
+        socket.emit(
+          "update_wb",
+          currentRoom.wbHistory.get(),
+          currentRoom.wbHistory._queue
+        );
+      } else {
+        socket.emit("update_wb", currentRoom.wbHistory.get());
+      }
+    }
+    socket.emit(
+      "notification_message",
+      "Welcome!",
+      "you have connected to " + roomName + "."
+    );
+    socket.broadcast
+      .to(roomName)
+      .emit(
+        "notification_message",
+        userName,
+        "has connected to " + roomName + "."
+      );
+    io.sockets.in(roomName).emit("update_users", currentRoom.getUsers());
+    io.sockets.emit("update_rooms", rooms);
+  });
+
+  socket.on("send_chat", function (data) {
+    var msgData = { name: socket.username, msg: data };
+    var currentRoom = rooms[socket.room];
+    currentRoom.chatHistory.push(msgData);
+    io.sockets.in(socket.room).emit("update_chat", [msgData]);
+  });
+
+  socket.on("send_wb", function (data) {
+    var currentRoom = rooms[socket.room];
+    currentRoom.wbHistory.add(data);
+    socket.broadcast.to(socket.room).emit("update_wb", data);
+  });
+
+  socket.on("change_wb_history", function (operation) {
+    var currentRoom = rooms[socket.room];
+    operation == "undo"
+      ? currentRoom.wbHistory.undo()
+      : currentRoom.wbHistory.redo();
+    io.sockets.in(socket.room).emit("update_wb_history", operation);
+  });
+
+  socket.on("send_image", function (src) {
+    var currentRoom = rooms[socket.room];
+    currentRoom.images.push(src);
+    socket.broadcast.to(socket.room).emit("update_image", src);
+  });
+
+  socket.on("disconnect", function () {
+    if (socket.room) {
+      var roomName = socket.room;
+      var userName = socket.username;
+      var currentRoom = rooms[roomName];
+      currentRoom.removeUser(userName);
+      if (!currentRoom.users.length) {
+        // delete empty room
+        delete rooms[roomName];
+        io.sockets.emit("update_rooms", rooms);
+      } else {
+        socket.broadcast
+          .to(roomName)
+          .emit("update_users", currentRoom.getUsers());
+      }
+    }
+    socket.broadcast
+      .to(roomName)
+      .emit(
+        "notification_message",
+        userName,
+        " has disconnected from " + roomName + "."
+      );
+    socket.leave(roomName);
   });
 });
