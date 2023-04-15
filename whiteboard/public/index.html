@@ -22,7 +22,25 @@
             z-index: -2;
             background-color: rgba(140, 140, 140, 0.1);
         }
-        
+        #conversation {
+            overflow: auto;
+            height: 265px;
+            margin: -15px;
+        }
+        #message_container {
+            position: absolute;
+            left: 78%;
+            bottom: 88px;
+            height: 310px;
+            width: 265px;
+        }
+        #message_send {
+            position: absolute;
+            left: 78%;
+            bottom: 37px;
+            height: 50px;
+            width: 265px;
+        }
     </style>
 </head>
 <body>
@@ -161,6 +179,91 @@
 </div>
 
 
+<!--chat start -->
+<div id="message_container">
+    <div class="panel panel-default">
+        <div class="panel-heading">Chat</div>
+        <div class="panel-body">
+            <div id="conversation"></div>
+        </div>
+    </div>
+</div>
+<div id="message_send">
+    <div class="input-group">
+        <input id="msg-input" type="text" class="form-control">
+          <span class="input-group-btn">
+            <button id="send-msg-btn" class="btn btn-default" type="button">Send!</button>
+          </span>
+    </div>
+</div>
+<!--chat end -->
+
+<!--notification start -->
+<div class="container" id="notification-div">
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="alert alert-info alert-dismissible" role="alert">
+                <p id="notification-content"><strong>Welcome!</strong> you have connected to room1.</p>
+            </div>
+        </div>
+    </div>
+</div>
+<!--notification end -->
+
+<!--footer start -->
+<div class="navbar navbar-default navbar-fixed-bottom">
+    <div class="container">
+        <p class="navbar-text pull-left">
+        </p>
+    </div>
+</div>
+<!--footer end -->
+
+<!--modal-window start -->
+<div class="modal fade" id="myModal" data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog"><!--modal-sm -->
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title"></h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-lg-6 col-lg-offset-1">
+                        <form class="form form-signup" role="form">
+                            <div class="form-group ">
+                                <label class="control-label">Please Enter Your Name:</label>
+
+                                <div class="input-group">
+                                    <span class="input-group-addon"><span
+                                            class="glyphicon glyphicon-user"></span></span>
+                                    <input id="username-input" type="text" class="form-control" placeholder="User Name"
+                                           autofocus/>
+
+                                </div>
+                                </br>
+                                <label class="control-label">Create Room:</label>
+
+                                <div class="input-group">
+                                    <span class="input-group-addon"><span class="glyphicon glyphicon-th"></span></span>
+                                    <input type="text" id="input-roomname" class="form-control"
+                                           placeholder="Room name"/>
+                                </div>
+                                <label class="control-label">Slect Room:</label>
+                                <select class="form-control" id="select-rooms">
+                                </select>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button id="go-ahead-bnt" type="button" class="btn btn-primary">Go Ahead</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--modal-window end -->
 </body>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
 <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
@@ -169,13 +272,3 @@
 <script type="text/javascript" src="js/whiteboard.js"></script>
 <script type="text/javascript" src="js/main.js"></script>
 </html>
-
-
-
-
-
-
- 
-
-
-
