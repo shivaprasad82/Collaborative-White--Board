@@ -57,6 +57,7 @@
             processAction(obj);
         }
     };
+
     wb.history = new History();
 
     var pencilTool = {};
@@ -220,6 +221,201 @@
     var paintClear = function () {
         gc.clearRect(0, 0, canvas.width, canvas.height);
     };
-    
+
+    var processAction = function (messageString) {
+        var o = messageString;
+        var i, coord;
+        for (var j = 0; j < o.length; ++j) {
+            if (o[j].type === "wb") {
+                switch (o[j].msg.op) {
+                    case "paintLine":
+                        coord = o[j].msg.coord;
+                        for ( i = 0; i < coord.length; ++i) {
+                            if ((i) % 4 === 0) {
+                                paintLine(o[j].msg.width, o[j].msg.color, coord[i], coord[i + 1], coord[i + 2], coord[i + 3]);
+                            }
+                        }
+                        break;
+                    case "paintEraser":
+                        coord = o[j].msg.coord;
+                        for ( i = 0; i < coord.length; ++i) {
+                            if ((i) % 2 === 0) {
+                                paintEraser(coord[i], coord[i + 1]);
+                            }
+                        }
+                        break;
+                    case "paintText":
+                        coord = o[j].msg.coord;
+                        for (i = 0; i < coord.length; ++i) {
+                            if ((i) % 2 === 0) {
+                                paintText(o[j].msg.text, o[j].msg.color, coord[i], coord[i + 1]);
+                            }
+                        }
+                        break;
+                    case "clear":
+                        paintClear();
+                        break;
+                }
+            }
+        }
+    };
+
+    var onSocketMessage = function (messageString) {
+
+        if(messageString[0].type === "wb"){
+            wb.history.add(messageString);
+            processAction(messageString);
+        }
+        else
+        {
+            for (var i = 0; i < messageString.length; ++i) {
+                wb.history.add(messageString[i]);
+                processAction(messageString[i]);
+            }
+        }
+    };
+
+    var submitQueue = function () {
+        if (msgQueue.length === 0) {
+            return;
+        }
+        wbSendMessage(msgQueue);
+        msgQueue = [];
+    };
+
+    var addEnqueue = function (tool) {    /* tool : 1 paintLine, 2 paintEraser,  3 paintRect, 4 paintText */
+        switch (tool) {
+            case 1:
+                if (arrayLineCoord.length === 0) {
+                    return;
+                }
+                enqueue({type: "wb", msg: { op: "paintLine", width: wb.lineWidth, color: wb.color, coord: arrayLineCoord }});
+                arrayLineCoord = [];
+                break;
+            case 2:
+                if (arrayCoord.length === 0) {
+                    return;
+                }
+                enqueue({type: "wb", msg: { op: "paintEraser", coord: arrayCoord }});
+                arrayCoord = [];
+                break;
+            case 3:
+                if (arrayCoord.length === 0) {
+                    return;
+                }
+                enqueue({type: "wb", msg: { op: "paintRect", width: wb.lineWidth, color: wb.color, coord: arrayCoord }});
+                arrayCoord = [];
+                break;
+            case 4:
+                enqueue({type: "wb", msg: { op: "paintText", text: text, color: wb.color, coord: arrayCoord }});
+                arrayCoord = [];
+                break;
+        }
+    };
+
+    var addCoord = function (tool, x1, y1, x2, y2) {      /* tool : 1 paintLine, 2 paintEraser,  3 paintRect , 4 paintText */
+        switch (tool) {
+            case 1:
+                arrayLineCoord.push(x1);
+                arrayLineCoord.push(y1);
+                arrayLineCoord.push(x2);
+                arrayLineCoord.push(y2);
+                if (arrayLineCoord.length > 1500) {
+                    enqueue({type: "wb", msg: {op: "paintLine", width: wb.lineWidth, color: wb.color, coord: arrayLineCoord}});
+                    arrayLineCoord = [];
+                }
+                break;
+            case 2:
+                arrayCoord.push(x1);
+                arrayCoord.push(y1);
+                if (arrayCoord.length > 1500) {
+                    enqueue({type: "wb", msg: { op: "paintEraser", coord: arrayCoord }});
+                    arrayCoord = [];
+                }
+                break;
+            case 3:
+                arrayCoord.push(x1);
+                arrayCoord.push(y1);
+                arrayCoord.push(x2);
+                arrayCoord.push(y2);
+                break;
+            case 4:
+                arrayCoord.push(x1);
+                arrayCoord.push(y1);
+                break;
+            case 5:
+                arrayLineCoord = [];
+                arrayCoord = [];
+                enqueue({type: "wb", msg: { op: "clear"}});
+                break;
+        }
+    };
+
+    var drawImage = function (src) {
+        var imgObject = new Image();
+        var gc = canvasPic.getContext("2d");
+        imgObject.onload = function () {
+            if (imgObject.width >= canvas.width) {
+                gc.drawImage(imgObject, 0, 0, canvas.width, canvas.height);
+            }
+            else {
+                gc.drawImage(imgObject, 0, 0, imgObject.width, imgObject.height);
+            }
+        };
+        imgObject.src = src;
+    };
+
+    var attach = function (canvas) {
+        if ((screen.width > 800) && (screen.height > 600)) {
+            canvas.width = 660;
+            canvas.height = 480;
+            gc = canvas.getContext("2d");
+            canvas.addEventListener('mousedown', onMouseDown, false);
+            canvas.addEventListener('mousemove', onMouseMove, false);
+            canvas.addEventListener('mouseup', onMouseUp, false);
+            var container = document.getElementById("span-container")
+            canvasPic = document.createElement('canvas');
+            canvasPic.id = "canvasPic";
+            canvasPic.width = canvas.width;
+            canvasPic.height = canvas.height;
+            container.appendChild(canvasPic);
+        }
+        else
+        {
+            alert("Current Screen is too Small!")
+        }
+    };
+
+    attach(canvas);
+
+    if (!whiteboard) {
+        var whiteboard = {
+            tool: function (tool) {
+                switch (tool) {
+                    case "pencil":
+                        wb.selectedTool = pencilTool;
+                        break;
+                    case "text":
+                        wb.selectedTool = textTool;
+                        break;
+                    case "eraser":
+                        wb.selectedTool = eraserTool;
+                        break;
+                }
+            },
+            toolColor: function (value) {
+                wb.color = value;
+            },
+            lineWidth: function (value) {
+                wb.lineWidth = value;
+            },
+            history: function () {
+                return wb.history;
+            },
+            onSocketMessage: onSocketMessage,
+            drawImage: drawImage
+        };
+        window.whiteboard = whiteboard;
+    }
 
 }(document.getElementById("canvas")));

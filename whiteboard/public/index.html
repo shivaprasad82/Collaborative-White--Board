@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Colloborative Whiteboard</title>
+    <!--<link href="css/bootstrap.min.css" rel="stylesheet">-->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <style>
+        body {
+            background-image: url('img/stucco.png');
+        }
+        #canvas {
+            z-index: 0;
+        }
+        #canvasPic
+        {
+            position:absolute;
+            top:10px;
+            left:15px;
+            border:1px solid #c0c0c0;
+            z-index: -2;
+            background-color: rgba(140, 140, 140, 0.1);
+        }
+        
+    </style>
+</head>
+<body>
+<div class="navbar navbar-inverse navbar-static-top">
+    <div class="container">
+        <a href="#" class="navbar-brand">Online Colloborative WhiteBoard </a>
+        <button class="navbar-toggle" data-toggle="collapse" data-target=".navHeaderCollapse"></button>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="col-lg-10">
+            <div class="panel panel-default">
+                <div class="panel-heading">Options:</div>
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-lg-2">
+                            <p><span class="label label-warning">Tools:</span></p>
+
+                            <div id="tools" class="btn-group btn-group-xs">
+                                <button type="button" class="btn btn-default"
+                                        onclick="whiteboard.tool('pencil')">Pencil
+                                </button>
+                                <button type="button" class="btn btn-default"
+                                        onclick="whiteboard.tool('eraser')">Eraser
+                                </button>
+                                <button type="button" class="btn btn-default"
+								        onclick="whiteboard.tool('text')">Text</button>
+                            </div>
+                        </div>
+                        <div class="col-lg-2">
+                            <p><span class="label label-warning">Width:</span></p>
+
+                            <div class="btn-group btn-group-xs">
+                                <button type="button" class="btn btn-default"
+                                        onclick="whiteboard.lineWidth(3);">Small
+                                </button>
+                                <button type="button" class="btn btn-default"
+                                        onclick="whiteboard.lineWidth(6);">Normal
+                                </button>
+                                <button type="button" class="btn btn-default"
+                                        onclick="whiteboard.lineWidth(10);">Big
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <p><span class="label label-warning">Color:</span></p>
+
+                            <div class="btn-group btn-group-xs">
+                                <button type="button" class="btn btn-default"
+                                        onclick="whiteboard.toolColor('#000000')">Black
+                                </button>
+                                <button type="button" class="btn btn-success"
+                                        onclick="whiteboard.toolColor('#0F8B4B')">Green
+                                </button>
+                                <button type="button" class="btn btn-danger"
+                                        onclick="whiteboard.toolColor('#FF3C21')">Red</button>
+                                <button type="button" class="btn btn-info"
+                                        onclick="whiteboard.toolColor('#169EFF')">Blue</button>
+                            </div>
+                        </div>
+                        <div class="col-lg-2">
+                            <p><span class="label label-warning">History:</span></p>
+
+                            <div class="btn-group btn-group-xs">
+                                <button type="button" class="btn btn-default"
+                                        onclick="changeWbHistory('redo')">Redo
+                                </button>
+                                <button type="button" class="btn btn-default"
+                                        onclick="changeWbHistory('undo')">Undo
+                                </button>
+                            </div>
+                        </div>
+                       
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-7">
+            <p style="width:650px;">
+            <div id="canvas_content">
+                <span id="span-container" style="cursor:crosshair;">
+                    <canvas id="canvas">
+                        Your browser does not support the HTML5 canvas tag.
+                    </canvas>
+                </span>
+                <br/>
+            </div>
+            </p>
+        </div>
+        <div class="col-lg-3">
+            <div class="panel-group" id="accordion">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
+                            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+                                Rooms <span class="badge pull-right" id="rooms-badge">0</span>
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="collapseOne" class="panel-collapse collapse">
+                        <div class="panel-body">
+                            <table class="table table-hover" id="table-rooms">
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
+                            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo">
+                                Users <span class="badge pull-right" id="users-badge">0</span>
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="collapseTwo" class="panel-collapse collapse">
+                        <div class="panel-body">
+                            <table class="table table-hover" id="table-users">
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3">
+        </div>
+    </div>
+</div>
+
+
+</body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+<!--<script src="js/bootstrap.min.js"></script>-->
+<script src="../socket.io/socket.io.js"></script>
+<script type="text/javascript" src="js/whiteboard.js"></script>
+<script type="text/javascript" src="js/main.js"></script>
+</html>
+
+
+
+
+
+
+ 
+
+
+
