@@ -57,6 +57,75 @@
             processAction(obj);
         }
     };
+    wb.history = new History();
+
+    var pencilTool = {};
+
+    pencilTool.paint = function (pos, op) { /* op: 0 down, 1 move, 2 up */
+        if (op !== 2) {
+            addCoord(1, oldX, oldY, pos.x, pos.y);
+        }
+        else if (op === 2) {
+            addEnqueue(1);
+        }
+        drawLine(oldX, oldY, pos.x, pos.y);
+    };
+
+    var eraserTool = {};
+
+    eraserTool.paint = function (pos, op) {
+        if (op !== 2) {
+            addCoord(2, pos.x, pos.y);
+        }
+        else if (op === 2) {
+            addEnqueue(2);
+        }
+        drawEraser(pos.x, pos.y);
+    };
+
+    var textTool = {};
+
+    textTool.paint = function (pos, op) {
+        if (op !== 0) {
+            addCoord(4, oldX, oldY, pos.x, pos.y);
+            setTimeout(function () {
+                var text_content = prompt("Enter text", "");
+                if (text_content) {
+                    text = text_content;
+                    drawText(text, pos.x, pos.y);
+                    addEnqueue(4);
+                }
+                else {
+                    arrayCoord.pop();
+                    arrayCoord.pop();
+                    return;
+                }
+            }, 200);
+        }
+    };
+
+    wb.selectedTool = pencilTool;
+
+    var getMousePos = function (e) {
+        var rect = canvas.getBoundingClientRect();
+        var cursorX = e.clientX - rect.left;
+        var cursorY = e.clientY - rect.top;
+        return {x: cursorX, y: cursorY};
+    };
+
+    var onMouseDown = function (ev) {
+        var e = ev || window.event;
+        var pos = getMousePos(e);
+        mouseDown = true;
+        oldX = pos.x;
+        oldY = pos.y;
+        if (oldY == pos.y) {
+            oldY += 0.1;
+        }
+        wb.selectedTool.paint(pos, 0);
+        stopEventPropagation(e);
+    };
+
     var onMouseMove = function (ev) {
         if (!mouseDown) {
             return false;
